@@ -101,26 +101,39 @@ private String createLine(Task task) {
      * @param code 取得するタスクのコード
      * @return 取得したタスク
      */
-    // public Task findByCode(int code) {
-    //     try () {
-
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    //     return null;
-    // }
+    public Task findByCode(int code) {
+        List<Task> tasks = findAll();
+        for (Task task : tasks) {
+            if (task.getCode() == code) {
+                return task;
+            }
+        }
+        return null; // タスクが見つからない場合
+    }
 
     /**
      * タスクデータを更新します。
      * @param updateTask 更新するタスク
      */
-    // public void update(Task updateTask) {
-    //     try () {
-
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
+    public void update(Task updateTask) {
+        List<Task> tasks = findAll(); // 既存タスクをすべて取得
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
+            // ヘッダー行を書き込む
+            bw.write("Code,Name,Status,Rep_User_Code");
+            bw.newLine();
+            
+            for (Task task : tasks) {
+                if (task.equals(updateTask)) {
+                    bw.write(createLine(updateTask)); //更新されたタスクを書く
+                } else {
+                    bw.write(createLine(task)); // それ以外のタスクを書く
+                }
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * コードを基にタスクデータを削除します。

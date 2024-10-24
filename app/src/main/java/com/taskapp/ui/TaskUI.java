@@ -66,6 +66,7 @@ public class TaskUI {
                 switch (selectMenu) {
                     case "1":
                         taskLogic.showAll(loginUser); //タスク一覧を表示
+                        selectSubMenu();// サブメニューを表示
                         break;
                     case "2":
                         inputNewInformation(); // タスク新規登録メソッドを呼び出す
@@ -85,6 +86,8 @@ public class TaskUI {
             System.out.println();
         }
     }
+
+    
 
     /**
      * ユーザーからのログイン情報を受け取り、ログイン処理を行います。
@@ -191,17 +194,87 @@ public class TaskUI {
      * @see #inputChangeInformation()
      * @see #inputDeleteInformation()
      */
-    // public void selectSubMenu() {
-    // }
-
+    public void selectSubMenu() {
+        boolean flg = true;
+        while (flg) {
+            try {
+                System.out.println("以下1~2から好きな選択肢を選んでください。");
+                System.out.println("1. タスクのステータス変更, 2. メインメニューに戻る");
+                System.out.print("選択肢：");
+                String selectSubMenu = reader.readLine();
+    
+                switch (selectSubMenu) {
+                    case "1":
+                        inputChangeInformation();
+                        break;
+                    case "2":
+                        flg = false;
+                        break;
+                    default:
+                        System.out.println("選択肢が誤っています。1または2の中から選択してください。");
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     /**
      * ユーザーからのタスクステータス変更情報を受け取り、タスクのステータスを変更します。
      *
      * @see #isNumeric(String)
      * @see com.taskapp.logic.TaskLogic#changeStatus(int, int, User)
      */
-    // public void inputChangeInformation() {
-    // }
+    public void inputChangeInformation() {
+        int taskCode = 0; // ステータスを変更したいタスクのコードを格納
+        int newStatus = 0;
+    
+        // タスクコードの入力
+        while (true) {
+            try {
+                System.out.print("ステータスを変更するタスクコードを入力してください：");
+                String input = reader.readLine();
+                if (!isNumeric(input)) {
+                    System.out.println("コードは半角の数字で入力してください");
+                    continue;
+                }
+                taskCode = Integer.parseInt(input);
+                break;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    
+        // 新しいステータスの入力
+        while (true) {
+            try {
+                System.out.println("どのステータスに変更するか選択してください。");
+                System.out.println("1. 着手中, 2. 完了");
+                System.out.print("選択肢：");
+                String input = reader.readLine();
+                if (!isNumeric(input)) {
+                    System.out.println("ステータスは半角の数字で入力してください");
+                    continue;
+                }
+                newStatus = Integer.parseInt(input);
+                if (newStatus != 1 && newStatus != 2) {
+                    System.out.println("ステータスは1・2の中から選択してください");
+                    continue;
+                }
+                break;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    
+        // ステータス変更を実行
+        try {
+            taskLogic.changeStatus(taskCode, newStatus, loginUser);
+            System.out.println("ステータスが変更されました。");
+        } catch (AppException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
     /**
      * ユーザーからのタスク削除情報を受け取り、タスクを削除します。
