@@ -1,8 +1,15 @@
 package com.taskapp.logic;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import com.taskapp.dataaccess.LogDataAccess;
 import com.taskapp.dataaccess.TaskDataAccess;
 import com.taskapp.dataaccess.UserDataAccess;
+import com.taskapp.exception.AppException;
+import com.taskapp.model.Log;
+import com.taskapp.model.Task;
+import com.taskapp.model.User;
 
 public class TaskLogic {
     private final TaskDataAccess taskDataAccess;
@@ -34,8 +41,38 @@ public class TaskLogic {
      * @see com.taskapp.dataaccess.TaskDataAccess#findAll()
      * @param loginUser ログインユーザー
      */
-    // public void showAll(User loginUser) {
-    // }
+    public void showAll(User loginUser) {
+        List<Task> tasks = taskDataAccess.findAll();
+        for (Task task : tasks) {
+            String assigneeName = task.getRepUser().getName();
+            String statusDescription;
+            
+            switch (task.getStatus()) {
+                case 0:
+                    statusDescription = "未着手";
+                    break;
+                case 1:
+                    statusDescription = "着手中";
+                    break;
+                case 2:
+                    statusDescription = "完了";
+                    break;
+                default:
+                    statusDescription = "不明";
+            }
+    
+            if (task.getRepUser().getCode() == loginUser.getCode()) {
+                System.out.printf("タスク名：%s, 担当者名：あなたが担当しています, ステータス：%s%n", 
+                        task.getName(), statusDescription);
+            } else {
+                System.out.printf("タスク名：%s, 担当者名：%sが担当しています, ステータス：%s%n", 
+                        task.getName(), assigneeName, statusDescription);
+            }
+        }
+    }
+    
+    
+
 
     /**
      * 新しいタスクを保存します。
@@ -49,9 +86,20 @@ public class TaskLogic {
      * @param loginUser ログインユーザー
      * @throws AppException ユーザーコードが存在しない場合にスローされます
      */
-    // public void save(int code, String name, int repUserCode,
-    //                 User loginUser) throws AppException {
-    // }
+    public void save(int code, String name, int repUserCode, User loginUser) throws AppException {
+    User repUser = userDataAccess.findByCode(repUserCode);
+    if (repUser == null) {
+        throw new AppException("存在するユーザーコードを入力してください");
+    }
+
+        Task newTask = new Task(code, name, 0, repUser); // Statusは0（未着手）
+    taskDataAccess.save(newTask);
+
+    // ログを作成して保存
+    Log log = new Log(code, loginUser.getCode(), 0, LocalDate.now());
+    logDataAccess.save(log);
+}
+
 
     /**
      * タスクのステータスを変更します。

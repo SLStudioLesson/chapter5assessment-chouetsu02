@@ -1,5 +1,16 @@
 package com.taskapp.dataaccess;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.taskapp.model.Task;
+import com.taskapp.model.User;
+
 public class TaskDataAccess {
 
     private final String filePath;
@@ -27,26 +38,63 @@ public class TaskDataAccess {
      * @see com.taskapp.dataaccess.UserDataAccess#findByCode(int)
      * @return タスクのリスト
      */
-    // public List<Task> findAll() {
-    //     try () {
+    public List<Task> findAll() {
+        List<Task> tasks = new ArrayList<>(); // 空のTaskオブジェクトを格納するリストを初期化
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            br.readLine(); // ヘッダー行をスキップ
+            
+            String line; //ファイルの各行を読み込む
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(","); //読み込んだ行をカンマで分割し、配列dataに格納
+                if (data.length == 4) {
+                    try {
+                        int code = Integer.parseInt(data[0].trim());
+                        String name = data[1].trim();
+                        int status = Integer.parseInt(data[2].trim());
+                        int repUserCode = Integer.parseInt(data[3].trim());
+    
+                        // ユーザー情報を取得
+                        User repUser = userDataAccess.findByCode(repUserCode); // repUserCodeを使って、対応するユーザー情報を取得
+                        tasks.add(new Task(code, name, status, repUser));
+                    } catch (NumberFormatException e) {
+                        System.out.println("数値変換エラー: " + line);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return tasks;
+    }
+    
 
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    //     return null;
-    // }
+    
+    
+
+    
+
 
     /**
      * タスクをCSVに保存します。
      * @param task 保存するタスク
      */
-    // public void save(Task task) {
-    //     try () {
+    public void save(Task task) {
+    try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath, true))) {
+        bw.write(createLine(task));
+        bw.newLine();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
 
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
+private String createLine(Task task) {
+    return String.format("%d,%s,%d,%d",
+            task.getCode(),
+            task.getName(),
+            task.getStatus(),
+            task.getRepUser().getCode());
+}
+
 
     /**
      * コードを基にタスクデータを1件取得します。

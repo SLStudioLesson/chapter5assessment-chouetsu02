@@ -1,12 +1,19 @@
 package com.taskapp.logic;
 
 import com.taskapp.dataaccess.UserDataAccess;
+import com.taskapp.exception.AppException;
+import com.taskapp.model.User;
 
 public class UserLogic {
     private final UserDataAccess userDataAccess;
 
     public UserLogic() {
         userDataAccess = new UserDataAccess();
+    }
+
+    public User findByCode(int code) {
+        // UserDataAccessからユーザーを取得
+        return userDataAccess.findByCode(code);
     }
 
     /**
@@ -26,7 +33,15 @@ public class UserLogic {
      * @return ログインしたユーザーの情報
      * @throws AppException メールアドレスとパスワードが一致するユーザーが存在しない場合にスローされます
      */
-    // public User login(String email, String password) throws AppException {
-    //     return null;
-    // }
+    //// ユーザーがログインするためのメソッド
+    public User login(String email, String password) throws AppException {
+    // メールアドレスとパスワードを使用してユーザーをデータベースから検索
+    User user = userDataAccess.findByEmailAndPassword(email, password);
+    // ユーザーが見つからない場合、例外をスロー
+    if (user == null) {
+        throw new AppException("既に登録されているメールアドレス、パスワードを入力してください");
+    }
+    return user;
+}
+
 }
